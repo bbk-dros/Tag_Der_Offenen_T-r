@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Früchte-Duell</title>
+<link rel="stylesheet" href="lib/style.css">
+<script src="lib/guard.js"></script>
+</head>
+<body>
+<canvas class="stage" id="stage"></canvas>
+<video class="source" id="video"></video>
+
+<div class="overlay" id="loading">
+  <div class="box">
+    <h1>🍉 Früchte-Duell</h1>
+    <div class="spinner"></div>
+    <p id="loadingText">Kamera und KI werden gestartet …</p>
+    <p id="loadingError" class="error"></p>
+    <p><button id="mouseButton" hidden>Ohne Kamera mit der Maus testen</button></p>
+  </div>
+</div>
+<div class="hint">F Vollbild · D Technik · M Maus · Esc Neustart</div>
+
+<script type="module" src="lib/main.js"></script>
+</body>
+</html>
