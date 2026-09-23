@@ -73,16 +73,18 @@ const main = {
     state.loadingError = elements.loadingError || null;
     state.mouseButton = elements.mouseButton || null;
     resizeStage(state);
-    this.reset();
+    this.reset(false);
     state.started = !!state.ctx;
     setLoading(state, state.started ? 'Grundstruktur geladen.' : 'Canvas fehlt.');
     return state.started;
   },
 
-  reset() {
+  reset(showStatus = true) {
     this.state.lastTime = null;
     this.state.view = createView();
-    setLoading(this.state, 'Grundstruktur bereit.');
+    if (showStatus) {
+      setLoading(this.state, 'Grundstruktur bereit.');
+    }
   },
 
   toggleMouseMode() {
