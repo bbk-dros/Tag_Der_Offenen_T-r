@@ -119,7 +119,7 @@ const main = {
     const state = this.state;
     const now = timestamp / 1000;
     const rawDt = state.lastTime ? now - state.lastTime : CONFIG.minDt;
-    const dt = Math.min(CONFIG.maxDt, Math.max(CONFIG.minDt, rawDt));
+    const dt = state.lastTime ? Math.min(CONFIG.maxDt, Math.max(0, rawDt)) : CONFIG.minDt;
     state.lastTime = now;
     this.update(dt, now);
     this.draw();
