@@ -61,6 +61,7 @@ const main = {
   state: createState(),
 
   init(elements = {}) {
+    this.state = createState();
     const state = this.state;
     state.stage = elements.stage || null;
     state.ctx = state.stage ? state.stage.getContext('2d') : null;
@@ -77,6 +78,7 @@ const main = {
   },
 
   reset() {
+    this.state.lastTime = 0;
     this.state.view = createView();
     setLoading(this.state, 'Grundstruktur bereit.');
   },
