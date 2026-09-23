@@ -26,6 +26,7 @@ function createState() {
     debug: false,
     useMouse: false,
     lastTime: null,
+    frameRequest: null,
     stage: null,
     ctx: null,
     video: null,
@@ -43,6 +44,7 @@ function resetRuntimeState(state) {
   state.debug = false;
   state.useMouse = false;
   state.lastTime = null;
+  state.frameRequest = null;
   state.size.width = 0;
   state.size.height = 0;
   state.view = createView();
@@ -74,6 +76,9 @@ const main = {
 
   init(elements = {}) {
     const state = this.state;
+    if (typeof state.frameRequest === 'number') {
+      cancelAnimationFrame(state.frameRequest);
+    }
     resetRuntimeState(state);
     state.stage = elements.stage || null;
     state.ctx = state.stage ? state.stage.getContext('2d') : null;
@@ -86,6 +91,9 @@ const main = {
     this.reset(false);
     state.started = !!state.ctx;
     setLoading(state, state.started ? 'Grundstruktur geladen.' : 'Canvas fehlt.');
+    if (state.started) {
+      state.frameRequest = window.requestAnimationFrame((timestamp) => this.loop(timestamp));
+    }
     return state.started;
   },
 
@@ -140,6 +148,9 @@ const main = {
     state.lastTime = now;
     this.update(dt, now);
     this.draw();
+    if (state.started) {
+      state.frameRequest = window.requestAnimationFrame((nextTimestamp) => this.loop(nextTimestamp));
+    }
   },
 };
 
