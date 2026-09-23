@@ -25,7 +25,7 @@ function createState() {
     started: false,
     debug: false,
     useMouse: false,
-    lastTime: 0,
+    lastTime: null,
     stage: null,
     ctx: null,
     video: null,
@@ -80,7 +80,7 @@ const main = {
   },
 
   reset() {
-    this.state.lastTime = 0;
+    this.state.lastTime = null;
     this.state.view = createView();
     setLoading(this.state, 'Grundstruktur bereit.');
   },
@@ -122,8 +122,9 @@ const main = {
   loop(timestamp) {
     const state = this.state;
     const now = timestamp / 1000;
-    const rawDt = state.lastTime ? now - state.lastTime : CONFIG.minDt;
-    const dt = state.lastTime ? Math.min(CONFIG.maxDt, Math.max(0, rawDt)) : CONFIG.minDt;
+    const hasLastTime = typeof state.lastTime === 'number';
+    const rawDt = hasLastTime ? now - state.lastTime : CONFIG.minDt;
+    const dt = hasLastTime ? Math.min(CONFIG.maxDt, Math.max(0, rawDt)) : CONFIG.minDt;
     state.lastTime = now;
     this.update(dt, now);
     this.draw();
