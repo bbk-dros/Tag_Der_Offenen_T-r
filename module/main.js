@@ -38,6 +38,16 @@ function createState() {
   };
 }
 
+function resetRuntimeState(state) {
+  state.started = false;
+  state.debug = false;
+  state.useMouse = false;
+  state.lastTime = null;
+  state.size.width = 0;
+  state.size.height = 0;
+  state.view = createView();
+}
+
 function setLoading(state, text, error = '') {
   if (state.loadingText) state.loadingText.textContent = text;
   if (state.loadingError) state.loadingError.textContent = error;
@@ -63,8 +73,8 @@ const main = {
   state: createState(),
 
   init(elements = {}) {
-    this.state = createState();
     const state = this.state;
+    resetRuntimeState(state);
     state.stage = elements.stage || null;
     state.ctx = state.stage ? state.stage.getContext('2d') : null;
     state.video = elements.video || null;
