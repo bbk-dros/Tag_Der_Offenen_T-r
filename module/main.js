@@ -8,6 +8,8 @@ const CONFIG = Object.freeze({
 
 function createView() {
   return {
+    dt: 0,
+    now: 0,
     poses: [],
     blades: [],
     arena: {
