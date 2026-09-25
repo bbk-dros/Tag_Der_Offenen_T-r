@@ -1,5 +1,6 @@
 // Ablauf und Wirkung · Team Ablauf
 import { ctx, size, drawText, POSE, SIDES } from '../lib/stage.js';
+import blades from './klingen.js';
 
 const CONFIG = {
   resultSeconds: 9,
@@ -316,9 +317,19 @@ const flow = {
 
 window.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') flow.reset();
-  if (event.key === '1' && flow.state === 'waiting' && flow.arena) flow.begin(1);
-  if (event.key === '2' && flow.state === 'waiting' && flow.arena) flow.begin(2);
-  if (['1', '2', 'Escape'].includes(event.key)) flow.ensureAudio();
+  if (event.key === '1' && flow.state === 'waiting' && flow.arena) {
+    blades.setLightsaberMode(false);
+    flow.begin(1);
+  }
+  if (event.key === '2' && flow.state === 'waiting' && flow.arena) {
+    blades.setLightsaberMode(false);
+    flow.begin(2);
+  }
+  if (event.key === '3' && flow.state === 'waiting' && flow.arena) {
+    blades.setLightsaberMode(true);
+    flow.begin(1);
+  }
+  if (['1', '2', '3', 'Escape'].includes(event.key)) flow.ensureAudio();
 });
 
 flow.record = 0;
