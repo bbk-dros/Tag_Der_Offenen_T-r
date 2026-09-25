@@ -32,17 +32,18 @@ function distanceToSegment(px, py, x, y, cx, cy) {
   return Math.hypot(cx - nearX, cy - nearY);
 }
 
-function makeFruit(side, x, vx, vy, bomb) {
+function makeFruit(side, x, vx, vy, kind) {
+  const isBomb = kind === 'bomb';
   return {
-    kind: bomb ? 'bomb' : 'fruit',
+    kind,
     side,
     x,
     y: size.height + 40,
     vx,
     vy,
-    radius: size.height * (bomb ? CONFIG.bombRadius : CONFIG.fruitRadius),
-    emoji: bomb ? '💣' : FRUITS[Math.floor(Math.random() * FRUITS.length)],
-    color: bomb ? '#444' : '#ff8a2b',
+    radius: size.height * (isBomb ? CONFIG.bombRadius : CONFIG.fruitRadius),
+    emoji: isBomb ? '💣' : FRUITS[Math.floor(Math.random() * FRUITS.length)],
+    color: isBomb ? '#444' : '#ff8a2b',
   };
 }
 
@@ -53,19 +54,24 @@ function spawnWave() {
     const leftX = centerX - offset;
     const rightX = centerX + offset;
     const drift = (Math.random() - 0.5) * CONFIG.throwSpread;
-    const lift = -(CONFIG.throwLift + Math.random() * 80);
-    const bombLeft = Math.random() < CONFIG.bombChance;
-    const bombRight = Math.random() < CONFIG.bombChance;
+
+    const bombWave = Math.random() < CONFIG.bombChance;
+    const heightMode = Math.random() < 0.5 ? 1 : 0.5;
+    const lift = -(CONFIG.throwLift * heightMode + Math.random() * 50 * heightMode);
+    const kind = bombWave ? 'bomb' : 'fruit';
+
     this.fruits.push(
-      makeFruit(0, leftX, drift, lift, bombLeft),
-      makeFruit(1, rightX, -drift, lift, bombRight),
+      makeFruit(0, leftX, drift, lift, kind),
+      makeFruit(1, rightX, -drift, lift, kind),
     );
     return;
   }
   const x = size.width * (0.15 + Math.random() * 0.7);
   const drift = (Math.random() - 0.5) * CONFIG.throwSpread;
-  const bomb = Math.random() < CONFIG.bombChance;
-  this.fruits.push(makeFruit(0, x, drift, -(CONFIG.throwLift + Math.random() * 80), bomb));
+  const bombWave = Math.random() < CONFIG.bombChance;
+  const heightMode = Math.random() < 0.5 ? 1 : 0.5;
+  const lift = -(CONFIG.throwLift * heightMode + Math.random() * 50 * heightMode);
+  this.fruits.push(makeFruit(0, x, drift, lift, bombWave ? 'bomb' : 'fruit'));
 }
 
 export default {
