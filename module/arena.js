@@ -10,7 +10,7 @@ const CONFIG = {
   spawnBase: 1.5,
   spawnMin: 0.8,
   bombChance: 0.14,
-  throwLift: 860,
+  throwLift: 980,
   throwSpread: 160,
   splitSpeed: 220,
   autoStartBuffer: 0.2,
@@ -54,24 +54,27 @@ function spawnWave() {
     const leftX = centerX - offset;
     const rightX = centerX + offset;
     const drift = (Math.random() - 0.5) * CONFIG.throwSpread;
-
-    const bombWave = Math.random() < CONFIG.bombChance;
-    const heightMode = Math.random() < 0.5 ? 1 : 0.5;
-    const lift = -(CONFIG.throwLift * heightMode + Math.random() * 50 * heightMode);
-    const kind = bombWave ? 'bomb' : 'fruit';
+    const kind = Math.random() < CONFIG.bombChance ? 'bomb' : 'fruit';
+    const liftHigh = -(CONFIG.throwLift + Math.random() * 50);
+    const liftLow = -(CONFIG.throwLift * 0.5 + Math.random() * 30);
 
     this.fruits.push(
-      makeFruit(0, leftX, drift, lift, kind),
-      makeFruit(1, rightX, -drift, lift, kind),
+      makeFruit(0, leftX, drift, liftHigh, kind),
+      makeFruit(0, leftX + offset * 0.28, drift * 0.7, liftLow, kind),
+      makeFruit(1, rightX, -drift, liftHigh, kind),
+      makeFruit(1, rightX - offset * 0.28, -drift * 0.7, liftLow, kind),
     );
     return;
   }
   const x = size.width * (0.15 + Math.random() * 0.7);
   const drift = (Math.random() - 0.5) * CONFIG.throwSpread;
-  const bombWave = Math.random() < CONFIG.bombChance;
-  const heightMode = Math.random() < 0.5 ? 1 : 0.5;
-  const lift = -(CONFIG.throwLift * heightMode + Math.random() * 50 * heightMode);
-  this.fruits.push(makeFruit(0, x, drift, lift, bombWave ? 'bomb' : 'fruit'));
+  const kind = Math.random() < CONFIG.bombChance ? 'bomb' : 'fruit';
+  const liftHigh = -(CONFIG.throwLift + Math.random() * 50);
+  const liftLow = -(CONFIG.throwLift * 0.5 + Math.random() * 30);
+  this.fruits.push(
+    makeFruit(0, x, drift, liftHigh, kind),
+    makeFruit(0, x + 60, drift * 0.75, liftLow, kind),
+  );
 }
 
 export default {
