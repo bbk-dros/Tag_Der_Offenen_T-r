@@ -142,10 +142,17 @@ const flow = {
 
     for (const blade of view.blades || []) {
       if (!blade.fast) continue;
-      this.trails.push({ side: blade.side, x: blade.x, y: blade.y, px: blade.px, py: blade.py, life: 0.18 });
+      this.trails.push({
+        side: blade.side,
+        x: blade.x, y: blade.y,
+        px: blade.px, py: blade.py,
+        life: 0.22,
+        glow: 1,
+      });
     }
     this.trails = this.trails.filter((trail) => {
       trail.life -= dt;
+      trail.glow *= 0.96;
       return trail.life > 0;
     });
 
@@ -256,12 +263,33 @@ const flow = {
     }
 
     for (const trail of this.trails) {
-      ctx.strokeStyle = SIDES[trail.side]?.color || '#fff';
-      ctx.lineWidth = H * 0.008;
+      const color = SIDES[trail.side]?.color || '#fff';
+      const alpha = Math.max(0, trail.life / 0.22);
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      ctx.strokeStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = H * 0.18;
+      ctx.lineWidth = H * 0.024;
+      ctx.globalAlpha = alpha * 1.0;
       ctx.beginPath();
       ctx.moveTo(trail.px, trail.py);
       ctx.lineTo(trail.x, trail.y);
       ctx.stroke();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.shadowColor = '#ffffff';
+      ctx.shadowBlur = H * 0.26;
+      ctx.lineWidth = H * 0.012;
+      ctx.globalAlpha = alpha * 0.7;
+      ctx.beginPath();
+      ctx.moveTo(trail.px, trail.py);
+      ctx.lineTo(trail.x, trail.y);
+      ctx.stroke();
+
+      ctx.restore();
     }
 
     for (const particle of this.particles) {
