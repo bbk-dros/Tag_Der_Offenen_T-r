@@ -10,8 +10,8 @@ const CONFIG = {
   spawnBase: 1.1,
   spawnMin: 0.42,
   bombChance: 0.14,
-  throwLift: 540,
-  throwSpread: 310,
+  throwLift: 1080,
+  throwSpread: 220,
   splitSpeed: 270,
   autoStartBuffer: 0.2,
 };
@@ -32,15 +32,16 @@ function distanceToSegment(px, py, x, y, cx, cy) {
   return Math.hypot(cx - nearX, cy - nearY);
 }
 
-function makeFruit(side, x) {
+function makeFruit(side, x, mirror = 1) {
   const bomb = Math.random() < CONFIG.bombChance;
+  const horizontal = ((Math.random() - 0.5) * CONFIG.throwSpread) * 0.75;
   return {
     kind: bomb ? 'bomb' : 'fruit',
     side,
     x,
     y: size.height + 40,
-    vx: (Math.random() - 0.5) * CONFIG.throwSpread,
-    vy: -(CONFIG.throwLift + Math.random() * 160),
+    vx: horizontal * mirror,
+    vy: -(CONFIG.throwLift + Math.random() * 140),
     radius: size.height * (bomb ? CONFIG.bombRadius : CONFIG.fruitRadius),
     emoji: bomb ? '💣' : FRUITS[Math.floor(Math.random() * FRUITS.length)],
     color: bomb ? '#444' : '#ff8a2b',
@@ -49,13 +50,23 @@ function makeFruit(side, x) {
 
 function spawnWave() {
   if (this.players === 2) {
-    const leftX = size.width * (0.2 + Math.random() * 0.22);
-    const rightX = size.width - leftX;
-    this.fruits.push(makeFruit(0, leftX), makeFruit(1, rightX));
+    const halfWidth = size.width * 0.5;
+    const offset = size.width * (0.12 + Math.random() * 0.15);
+    const leftX = halfWidth - offset;
+    const rightX = halfWidth + offset;
+    const mirror = Math.random() < 0.5 ? -1 : 1;
+    this.fruits.push(
+      makeFruit(0, leftX, -1),
+      makeFruit(1, rightX, 1),
+    );
+    if (mirror === -1) {
+      this.fruits[this.fruits.length - 2].vx *= -1;
+      this.fruits[this.fruits.length - 1].vx *= -1;
+    }
     return;
   }
   const x = size.width * (0.15 + Math.random() * 0.7);
-  this.fruits.push(makeFruit(0, x));
+  this.fruits.push(makeFruit(0, x, 1));
 }
 
 export default {
