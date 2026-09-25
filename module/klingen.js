@@ -8,6 +8,9 @@ const CONFIG = {
   fastThreshold: 1.2,     // Bildschirmhöhen pro Sekunde
   elbowOffset: 0.08,      // Klinge liegt etwas über dem Handgelenk in Richtung Ellbogen
   maxGapSeconds: 0.5,     // kurze Personenausfälle werden weich weitergeführt
+  lightsaberLength: 0.6,  // Lichtschwertlänge als Anteil der Bildschirmhöhe
+  lightsaberSegments: 6,  // Anzahl der Punkte pro Lichtschwert
+  twoHandDistance: 0.18,  // Abstand für einen gemeinsamen Griff, als Bildschirmhöhe
 };
 
 // KI-Notiz:
@@ -49,6 +52,44 @@ function bladePosition(pose, wristIndex, elbowIndex) {
   return { x: baseX, y: baseY };
 }
 
+function bladeDirection(pose, wristIndex, elbowIndex) {
+  const wrist = pose[wristIndex];
+  const elbow = pose[elbowIndex];
+  if (!wrist || !elbow || elbow.visibility < CONFIG.minVisibility) return { x: 0, y: 0 };
+  const length = Math.hypot(wrist.x - elbow.x, wrist.y - elbow.y) || 1;
+  return { x: (wrist.x - elbow.x) / length, y: (wrist.y - elbow.y) / length };
+}
+
+function lightsaberGrip(pose, hand) {
+  const active = hand === 'left'
+    ? { wrist: POSE.LEFT_WRIST, elbow: POSE.LEFT_ELBOW }
+    : { wrist: POSE.RIGHT_WRIST, elbow: POSE.RIGHT_ELBOW };
+  const other = hand === 'left'
+    ? { wrist: POSE.RIGHT_WRIST, elbow: POSE.RIGHT_ELBOW }
+    : { wrist: POSE.LEFT_WRIST, elbow: POSE.LEFT_ELBOW };
+  const activeWrist = pose[active.wrist];
+  if (!activeWrist || activeWrist.visibility < CONFIG.minVisibility) return null;
+
+  const otherWrist = pose[other.wrist];
+  const twoHands = otherWrist && otherWrist.visibility >= CONFIG.minVisibility
+    && Math.hypot(activeWrist.x - otherWrist.x, activeWrist.y - otherWrist.y)
+      < size.height * CONFIG.twoHandDistance;
+  if (!twoHands) {
+    return { x: activeWrist.x, y: activeWrist.y, direction: bladeDirection(pose, active.wrist, active.elbow) };
+  }
+
+  const activeDirection = bladeDirection(pose, active.wrist, active.elbow);
+  const otherDirection = bladeDirection(pose, other.wrist, other.elbow);
+  return {
+    x: (activeWrist.x + otherWrist.x) / 2,
+    y: (activeWrist.y + otherWrist.y) / 2,
+    direction: {
+      x: (activeDirection.x + otherDirection.x) / 2,
+      y: (activeDirection.y + otherDirection.y) / 2,
+    },
+  };
+}
+
 export default {
   // Alle Klingen im aktuellen Bild: [{ side, x, y, px, py, fast }]
   list: [],
@@ -66,7 +107,41 @@ export default {
       const pose = poses[personIndex];
       if (!pose) continue;
 
-      const side = getShoulderSide(pose);
+      const side = poses.length === 1 ? 0 : getShoulderSide(pose);
+      if (this.lightsaberMode) {
+        const grip = lightsaberGrip(pose, this.lightsaberHand);
+        const segmentCount = Math.max(1, Math.floor(CONFIG.lightsaberSegments));
+        const segmentBlades = [];
+        let fast = false;
+        const keyPrefix = `${personIndex}:LIGHTSABER`;
+
+        if (grip) {
+          for (let segment = 0; segment < segmentCount; segment++) {
+            const key = `${keyPrefix}:seg${segment}`;
+            const previous = tracked.get(key) || {
+              x: 0, y: 0, px: 0, py: 0, lastSeen: 0, side,
+            };
+            const fraction = segmentCount === 1 ? 0 : segment / (segmentCount - 1);
+            const raw = {
+              x: grip.x + grip.direction.x * size.height * CONFIG.lightsaberLength * fraction,
+              y: grip.y + grip.direction.y * size.height * CONFIG.lightsaberLength * fraction,
+            };
+            const prevX = Number.isFinite(previous.x) ? previous.x : raw.x;
+            const prevY = Number.isFinite(previous.y) ? previous.y : raw.y;
+            const x = prevX * (1 - CONFIG.smoothing) + raw.x * CONFIG.smoothing;
+            const y = prevY * (1 - CONFIG.smoothing) + raw.y * CONFIG.smoothing;
+            const speed = Math.hypot(x - prevX, y - prevY)
+              / Math.max(dt, 1 / 120) / size.height;
+            segmentBlades.push({ side, x, y, px: prevX, py: prevY });
+            fast ||= speed >= CONFIG.fastThreshold;
+            seen.add(key);
+            tracked.set(key, { x, y, px: prevX, py: prevY, lastSeen: now, side });
+          }
+        }
+        list.push(...segmentBlades.map((blade) => ({ ...blade, fast })));
+        continue;
+      }
+
       const wrists = [
         { key: `${personIndex}:LEFT_WRIST`, index: POSE.LEFT_WRIST, elbow: POSE.LEFT_ELBOW },
         { key: `${personIndex}:RIGHT_WRIST`, index: POSE.RIGHT_WRIST, elbow: POSE.RIGHT_ELBOW },
@@ -119,6 +194,10 @@ export default {
 
     for (const [key, previous] of tracked) {
       if (seen.has(key)) continue;
+      if (this.lightsaberMode !== key.includes(':seg')) {
+        tracked.delete(key);
+        continue;
+      }
       if (now - (previous.lastSeen ?? 0) >= CONFIG.maxGapSeconds) {
         tracked.delete(key);
         continue;
@@ -139,5 +218,11 @@ export default {
 
     this.list = list;
     this.tracked = tracked;
+  },
+  lightsaberMode: false,
+  lightsaberHand: 'right',
+  setLightsaberMode(on, hand = 'right') {
+    this.lightsaberMode = on;
+    this.lightsaberHand = hand === 'left' ? 'left' : 'right';
   },
 };
