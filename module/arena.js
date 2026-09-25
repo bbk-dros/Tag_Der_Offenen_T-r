@@ -10,7 +10,7 @@ const CONFIG = {
   spawnBase: 1.5,
   spawnMin: 0.8,
   bombChance: 0.14,
-  throwLift: 760,
+  throwLift: 860,
   throwSpread: 160,
   splitSpeed: 220,
   autoStartBuffer: 0.2,
