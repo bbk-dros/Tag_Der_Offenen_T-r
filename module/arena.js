@@ -6,11 +6,11 @@ const CONFIG = {
   roundSeconds: 60,
   gravity: 620,
   fruitRadius: 0.045,
-  bombRadius: 0.05,
+  bombRadius: 0.045,
   spawnBase: 1.5,
   spawnMin: 0.8,
   bombChance: 0.14,
-  throwLift: 980,
+  throwLift: 850,
   throwSpread: 160,
   splitSpeed: 220,
   autoStartBuffer: 0.2,
@@ -50,30 +50,32 @@ function makeFruit(side, x, vx, vy, kind) {
 function spawnWave() {
   if (this.players === 2) {
     const centerX = size.width / 2;
-    const offset = size.width * (0.12 + Math.random() * 0.12);
+    const offset = size.width * (0.22 + Math.random() * 0.12);
     const leftX = centerX - offset;
     const rightX = centerX + offset;
     const drift = (Math.random() - 0.5) * CONFIG.throwSpread;
     const kind = Math.random() < CONFIG.bombChance ? 'bomb' : 'fruit';
+    const kind2 = Math.random() < CONFIG.bombChance ? 'bomb' : 'fruit';
     const liftHigh = -(CONFIG.throwLift + Math.random() * 50);
-    const liftLow = -(CONFIG.throwLift * 0.5 + Math.random() * 30);
+    const liftLow = -(CONFIG.throwLift * 0.75 + Math.random() * 30);
 
     this.fruits.push(
       makeFruit(0, leftX, drift, liftHigh, kind),
-      makeFruit(0, leftX + offset * 0.28, drift * 0.7, liftLow, kind),
+      makeFruit(0, leftX + offset * 0.28, drift * 0.7, liftLow, kind2),
       makeFruit(1, rightX, -drift, liftHigh, kind),
-      makeFruit(1, rightX - offset * 0.28, -drift * 0.7, liftLow, kind),
+      makeFruit(1, rightX - offset * 0.28, -drift * 0.7, liftLow, kind2),
     );
     return;
   }
   const x = size.width * (0.15 + Math.random() * 0.7);
   const drift = (Math.random() - 0.5) * CONFIG.throwSpread;
   const kind = Math.random() < CONFIG.bombChance ? 'bomb' : 'fruit';
+  const kind2 = Math.random() < CONFIG.bombChance ? 'bomb' : 'fruit';
   const liftHigh = -(CONFIG.throwLift + Math.random() * 50);
-  const liftLow = -(CONFIG.throwLift * 0.5 + Math.random() * 30);
+  const liftLow = -(CONFIG.throwLift * 0.75 + Math.random() * 30);
   this.fruits.push(
     makeFruit(0, x, drift, liftHigh, kind),
-    makeFruit(0, x + 60, drift * 0.75, liftLow, kind),
+    makeFruit(0, x + 60, drift * 0.75, liftLow, kind2),
   );
 }
 
