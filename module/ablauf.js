@@ -143,12 +143,14 @@ const flow = {
 
     for (const blade of view.blades || []) {
       if (!blade.fast) continue;
+      const mode = blade.mode || (blades.lightsaberMode ? 'lightsword' : 'normal');
       this.trails.push({
         side: blade.side,
         x: blade.x, y: blade.y,
         px: blade.px, py: blade.py,
         life: 0.22,
         glow: 1,
+        mode,
       });
     }
     this.trails = this.trails.filter((trail) => {
@@ -266,29 +268,76 @@ const flow = {
     for (const trail of this.trails) {
       const color = SIDES[trail.side]?.color || '#fff';
       const alpha = Math.max(0, trail.life / 0.22);
+      const x1 = trail.px;
+      const y1 = trail.py;
+      const x2 = trail.x;
+      const y2 = trail.y;
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const length = Math.hypot(dx, dy) || 1;
+      const nx = dx / length;
+      const ny = dy / length;
+
       ctx.save();
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
-      ctx.strokeStyle = color;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = H * 0.18;
-      ctx.lineWidth = H * 0.024;
-      ctx.globalAlpha = alpha * 1.0;
-      ctx.beginPath();
-      ctx.moveTo(trail.px, trail.py);
-      ctx.lineTo(trail.x, trail.y);
-      ctx.stroke();
+      if (trail.mode === 'lightsword') {
+        const trailStartX = x2 - nx * Math.min(length * 0.9, H * 0.55);
+        const trailStartY = y2 - ny * Math.min(length * 0.9, H * 0.55);
+        const cutEndX = x2 - nx * H * 0.12;
+        const cutEndY = y2 - ny * H * 0.12;
 
-      ctx.strokeStyle = '#ffffff';
-      ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = H * 0.26;
-      ctx.lineWidth = H * 0.012;
-      ctx.globalAlpha = alpha * 0.7;
-      ctx.beginPath();
-      ctx.moveTo(trail.px, trail.py);
-      ctx.lineTo(trail.x, trail.y);
-      ctx.stroke();
+        ctx.strokeStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = H * 0.42;
+        ctx.lineWidth = H * 0.05;
+        ctx.globalAlpha = alpha * 0.9;
+        ctx.beginPath();
+        ctx.moveTo(trailStartX, trailStartY);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = H * 0.6;
+        ctx.lineWidth = H * 0.018;
+        ctx.globalAlpha = alpha * 0.8;
+        ctx.beginPath();
+        ctx.moveTo(trailStartX, trailStartY);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        ctx.strokeStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = H * 0.16;
+        ctx.lineWidth = H * 0.012;
+        ctx.globalAlpha = alpha * 1;
+        ctx.beginPath();
+        ctx.moveTo(cutEndX, cutEndY);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      } else {
+        ctx.strokeStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = H * 0.18;
+        ctx.lineWidth = H * 0.024;
+        ctx.globalAlpha = alpha * 1.0;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = H * 0.26;
+        ctx.lineWidth = H * 0.012;
+        ctx.globalAlpha = alpha * 0.7;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
 
       ctx.restore();
     }
